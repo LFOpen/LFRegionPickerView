@@ -29,10 +29,6 @@
 @property (copy, nonatomic) NSString *mCurrentCityName;
 @property (copy, nonatomic) NSString *mCurrentAreaName;
 
-@property (assign, nonatomic) NSInteger lastSelectIndex1;
-@property (assign, nonatomic) NSInteger lastSelectIndex2;
-@property (assign, nonatomic) NSInteger lastSelectIndex3;
-
 @property (copy, nonatomic) LFRegionResult result;
 @end
 
@@ -51,40 +47,33 @@
         regionPickerView.regionGrade = RegionGradeArea;
         regionPickerView.buttonHeight = 44.0;
         regionPickerView.height = 250.0;
-        regionPickerView.keepLastSelectedState = NO;
+        
+        NSData *locationData = [NSData dataWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"location" ofType:@"json"]];
+        NSDictionary *locationDict = [NSJSONSerialization JSONObjectWithData:locationData options:NSJSONReadingAllowFragments error:nil];
+        
+        regionPickerView.mProvinceDict = [locationDict objectForKey:@"province"];
+        regionPickerView.mCityDict = [locationDict objectForKey:@"city"];
+        regionPickerView.mAreaDict = [locationDict objectForKey:@"area"];
+        
+        
+        regionPickerView.mCurrentProvinceCode = regionPickerView.mProvinceDict.allKeys[0];
+        regionPickerView.mCurrentProvinceName = [regionPickerView.mProvinceDict objectForKey:regionPickerView.mProvinceDict.allKeys[0]];
+        regionPickerView.mCurrentCityCode = [regionPickerView.mCityDict objectForKey:regionPickerView.mCurrentProvinceCode][0];
+        regionPickerView.mCurrentCityName = [regionPickerView.mCityDict objectForKey:regionPickerView.mCurrentProvinceCode][1];
+        regionPickerView.mCurrentAreaCode = [regionPickerView.mAreaDict objectForKey:regionPickerView.mCurrentCityCode][0];
+        regionPickerView.mCurrentAreaName = [regionPickerView.mAreaDict objectForKey:regionPickerView.mCurrentCityCode][1];
+        
+        [regionPickerView addSubview:regionPickerView.mCancelBtn];
+        [regionPickerView addSubview:regionPickerView.mBottomGapView];
+        [regionPickerView addSubview:regionPickerView.mOkBtn];
+        [regionPickerView addSubview:regionPickerView.mMainPickerView];
+        [regionPickerView addSubview:regionPickerView.mTopGapView];
     });
     return regionPickerView;
 }
 
 -(void)showInView:(UIView *)superView result:(LFRegionResult)result {
-    
-    NSData *locationData = [NSData dataWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"location" ofType:@"json"]];
-    NSDictionary *locationDict = [NSJSONSerialization JSONObjectWithData:locationData options:NSJSONReadingAllowFragments error:nil];
-    
-    self.mProvinceDict = [locationDict objectForKey:@"province"];
-    self.mCityDict = [locationDict objectForKey:@"city"];
-    self.mAreaDict = [locationDict objectForKey:@"area"];
-    self.result = result;
-    
-    if (self.keepLastSelectedState) {
-        if (self.regionGrade == RegionGradeCity) {
-            [self.mMainPickerView selectRow:self.lastSelectIndex2 inComponent:1 animated:NO];
-        } else if (self.regionGrade == RegionGradeArea) {
-            [self.mMainPickerView selectRow:self.lastSelectIndex2 inComponent:1 animated:NO];
-            [self.mMainPickerView selectRow:self.lastSelectIndex3 inComponent:2 animated:NO];
-        } else {
-            [self.mMainPickerView selectRow:self.lastSelectIndex1 inComponent:0 animated:NO];
-        }
-    } else {
-        self.mCurrentProvinceCode = self.mProvinceDict.allKeys[0];
-        self.mCurrentProvinceName = [self.mProvinceDict objectForKey:self.mProvinceDict.allKeys[0]];
-        self.mCurrentCityCode = [self.mCityDict objectForKey:self.mCurrentProvinceCode][0];
-        self.mCurrentCityName = [self.mCityDict objectForKey:self.mCurrentProvinceCode][1];
-        self.mCurrentAreaCode = [self.mAreaDict objectForKey:self.mCurrentCityCode][0];
-        self.mCurrentAreaName = [self.mAreaDict objectForKey:self.mCurrentCityCode][1];
-    }
-    
-    
+
     self.frame = CGRectMake(0, MAINSCREEN_H - self.height, MAINSCREEN_W, self.height);
     self.mTopGapView.frame = CGRectMake(0, 0, MAINSCREEN_W, 1.0);
     // 根据ButtonPosition的位置来重新布局
@@ -100,12 +89,94 @@
         self.mBottomGapView.frame = CGRectMake(0, self.bounds.size.height - self.mOkBtn.bounds.size.height, MAINSCREEN_W, 1.0);
         self.mMainPickerView.frame = CGRectMake(0, 1.0, MAINSCREEN_W, self.bounds.size.height - self.mOkBtn.bounds.size.height-1.0*2);
     }
+    self.result = result;
     
-    [self addSubview:self.mCancelBtn];
-    [self addSubview:self.mBottomGapView];
-    [self addSubview:self.mOkBtn];
-    [self addSubview:self.mMainPickerView];
-    [self addSubview:self.mTopGapView];
+    if (self.currentRegionCode == nil && self.currentRegionName == nil) {
+        self.currentRegionName = @"山东省/济南市/历下区";
+        self.currentRegionCode = @"370000/370100/370102";
+    }
+    
+    // 滚动到指定位置
+    if (self.currentRegionCode != nil) {
+        NSArray *regionCodes = [self.currentRegionCode componentsSeparatedByString:@"/"];
+        if (regionCodes.count >= 1) { // 滚动到对应的省
+            self.mCurrentProvinceCode = [regionCodes objectAtIndex:0];
+            self.mCurrentProvinceName = [self.mProvinceDict objectForKey:self.mCurrentProvinceCode];
+            
+            NSInteger index = [self.mProvinceDict.allKeys indexOfObject:self.mCurrentProvinceCode];
+            [self.mMainPickerView selectRow:index inComponent:0 animated:YES];
+            
+            if (regionCodes.count >= 2) { // 滚动到对应的市/区
+                self.mCurrentCityCode = [regionCodes objectAtIndex:1];
+                NSArray *citys = [self.mCityDict objectForKey:self.mCurrentProvinceCode];
+                
+                for (int i=0; i<citys.count; i++) {
+                    if ([citys[i][0] isEqualToString:self.mCurrentCityCode]) {
+                        self.mCurrentCityName = citys[i][1];
+                        [self.mMainPickerView selectRow:i inComponent:1 animated:YES];
+                        break;
+                    }
+                }
+                
+                if (regionCodes.count == 3) { // 滚动到对应的县/区
+                    self.mCurrentAreaCode = [regionCodes objectAtIndex:2];
+                    NSArray *areas = [self.mAreaDict objectForKey:self.mCurrentCityCode];
+                    
+                    for (int i = 0; i < areas.count; i++) {
+                        if ([areas[i][0] isEqualToString:self.mCurrentAreaCode]) {
+                            self.mCurrentAreaName = areas[i][1];
+                            [self.mMainPickerView selectRow:i inComponent:2 animated:YES];
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    } else {
+        NSArray *regionNames = [self.currentRegionName componentsSeparatedByString:@"/"];
+        if (regionNames.count >= 1) { // 滚动到对应的省
+            self.mCurrentProvinceName = [regionNames objectAtIndex:0];
+            for (int i=0; i<self.mProvinceDict.allKeys.count; i++) {
+                NSString *provinceName = [self.mProvinceDict objectForKey:self.mProvinceDict.allKeys[i]];
+                if ([self.mCurrentProvinceName isEqualToString:provinceName]) {
+                    self.mCurrentProvinceCode = self.mProvinceDict.allKeys[i];
+                    break;
+                }
+            }
+            
+            NSInteger index = [self.mProvinceDict.allKeys indexOfObject:self.mCurrentProvinceCode];
+            [self.mMainPickerView selectRow:index inComponent:0 animated:YES];
+            
+            if (regionNames.count >= 2) { // 滚动到对应的市/区
+                self.mCurrentCityName = [regionNames objectAtIndex:1];
+                NSArray *citys = [self.mCityDict objectForKey:self.mCurrentProvinceCode];
+                
+                for (int i=0; i<citys.count; i++) {
+                    if ([citys[i][1] isEqualToString:self.mCurrentCityName]) {
+                        self.mCurrentCityCode = citys[i][0];
+                        [self.mMainPickerView selectRow:i inComponent:1 animated:YES];
+                        break;
+                    }
+                }
+                
+                if (regionNames.count == 3) { // 滚动到对应的县/区
+                    self.mCurrentAreaName = [regionNames objectAtIndex:2];
+                    NSArray *areas = [self.mAreaDict objectForKey:self.mCurrentCityCode];
+                    
+                    for (int i = 0; i < areas.count; i++) {
+                        if ([areas[i][1] isEqualToString:self.mCurrentAreaName]) {
+                            self.mCurrentAreaCode = areas[i][0];
+                            [self.mMainPickerView selectRow:i inComponent:2 animated:YES];
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    [self.mMainPickerView reloadAllComponents];
+    
     [superView addSubview:self];
 }
 
@@ -176,7 +247,7 @@
 - (void)pickerView:(UIPickerView *)pickerView didSelectRow:(NSInteger)row inComponent:(NSInteger)component {
     
     if (component == 0) {
-        self.lastSelectIndex1 = row;
+        
         self.mCurrentProvinceCode = self.mProvinceDict.allKeys[row];
         self.mCurrentProvinceName = [self.mProvinceDict objectForKey:self.mCurrentProvinceCode];
         
@@ -198,7 +269,7 @@
         }
         
     } else if (component == 1) {
-        self.lastSelectIndex2 = row;
+        
         NSArray *citys = [self.mCityDict objectForKey:self.mCurrentProvinceCode];
         NSArray *city = citys[row];
         self.mCurrentCityCode = city[0];
@@ -214,7 +285,7 @@
         }
         
     } else {
-        self.lastSelectIndex3 = row;
+        
         NSArray *areas = [self.mAreaDict objectForKey:self.mCurrentCityCode];
         NSArray *area = areas[row];
         self.mCurrentAreaCode = area[0];

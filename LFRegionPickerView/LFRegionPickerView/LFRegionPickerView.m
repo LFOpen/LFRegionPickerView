@@ -47,6 +47,9 @@
         regionPickerView.regionGrade = RegionGradeArea;
         regionPickerView.buttonHeight = 44.0;
         regionPickerView.height = 250.0;
+        regionPickerView.pickerTitleFont = [UIFont systemFontOfSize:17.0];
+        regionPickerView.cancelTitleFont = [UIFont systemFontOfSize:17.0];
+        regionPickerView.okTitleFont = [UIFont systemFontOfSize:17.0];
         
         NSData *locationData = [NSData dataWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"location" ofType:@"json"]];
         NSDictionary *locationDict = [NSJSONSerialization JSONObjectWithData:locationData options:NSJSONReadingAllowFragments error:nil];
@@ -77,6 +80,9 @@
 }
 
 -(void)viewInit {
+    
+    [self.mCancelBtn.titleLabel setFont:self.cancelTitleFont];
+    [self.mOkBtn.titleLabel setFont:self.okTitleFont];
     
     self.frame = CGRectMake(0, MAINSCREEN_H - self.height, MAINSCREEN_W, self.height);
     self.mTopGapView.frame = CGRectMake(0, 0, MAINSCREEN_W, 1.0);
@@ -253,7 +259,7 @@
     return 44.0;
 }
 
-- (nullable NSAttributedString *)pickerView:(UIPickerView *)pickerView attributedTitleForRow:(NSInteger)row forComponent:(NSInteger)component {
+-(UIView *)pickerView:(UIPickerView *)pickerView viewForRow:(NSInteger)row forComponent:(NSInteger)component reusingView:(UIView *)view {
     
     NSString *title = @"";
     if (component == 0) {
@@ -272,9 +278,12 @@
         return nil;
     }
     
-    
-    NSMutableAttributedString *attrTitle = [[NSMutableAttributedString alloc] initWithString:title attributes:@{NSForegroundColorAttributeName: self.pickerTitleColor, NSFontAttributeName: [UIFont systemFontOfSize:12.0]}];
-    return attrTitle;
+    UILabel *pickerLabel = [[UILabel alloc] init];
+    pickerLabel.textColor = self.pickerTitleColor;
+    pickerLabel.text = title;
+    pickerLabel.font = self.pickerTitleFont;
+    pickerLabel.textAlignment = NSTextAlignmentCenter;
+    return pickerLabel;
 }
 
 - (void)pickerView:(UIPickerView *)pickerView didSelectRow:(NSInteger)row inComponent:(NSInteger)component {

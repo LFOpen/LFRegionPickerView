@@ -51,6 +51,11 @@ end
     [LFRegionPickerView shared].currentRegionCode = @"370000/370100/370102";
     // 是否在每级的头部添加 “全部” 选项
     [LFRegionPickerView shared].showAll = true;
+    
+    // 修改字体
+    [LFRegionPickerView shared].pickerTitleFont = [UIFont systemFontOfSize:12.0];
+    [LFRegionPickerView shared].cancelTitleFont = [UIFont systemFontOfSize:12.0];
+    [LFRegionPickerView shared].okTitleFont = [UIFont systemFontOfSize:12.0];
 ```
 修改完上面的属性后，再调用一下代码来显示即可
 ```

@@ -49,6 +49,8 @@ end
     [LFRegionPickerView shared].currentRegionName = @"山东省/济南市/历下区";
     // 设置默认选中的地区对应的Code
     [LFRegionPickerView shared].currentRegionCode = @"370000/370100/370102";
+    // 是否在每级的头部添加 “全部” 选项
+    [LFRegionPickerView shared].showAll = true;
 ```
 修改完上面的属性后，再调用一下代码来显示即可
 ```

@@ -1,8 +1,8 @@
 # LFRegionPickerView
- ![image](https://github.com/LFOpen/LFRegionPickerView/raw/master/pics/pic1.png)
- ![image](https://github.com/LFOpen/LFRegionPickerView/raw/master/pics/pic2.png)
- ![image](https://github.com/LFOpen/LFRegionPickerView/raw/master/pics/pic3.png)
-  ![image](https://github.com/LFOpen/LFRegionPickerView/raw/master/pics/pic4.png)
+ ![image](https://github.com/LFOpen/LFRegionPickerView/raw/master/pics/pic1.PNG)
+ ![image](https://github.com/LFOpen/LFRegionPickerView/raw/master/pics/pic2.PNG)
+ ![image](https://github.com/LFOpen/LFRegionPickerView/raw/master/pics/pic3.PNG)
+  ![image](https://github.com/LFOpen/LFRegionPickerView/raw/master/pics/pic4.PNG)
 
 封装了一个地址选择器，该地址选择器会返回选择的地区名称，如`山东省/济南市/历下区` 和该地区对应的Code, 如: `370000/370100/370102`.
 

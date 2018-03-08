@@ -17,9 +17,9 @@
 @property (strong, nonatomic) UIButton *mCancelBtn;
 @property (strong, nonatomic) UIButton *mOkBtn;
 
-@property (strong, nonatomic) NSDictionary *mProvinceDict;
-@property (strong, nonatomic) NSDictionary *mCityDict;
-@property (strong, nonatomic) NSDictionary *mAreaDict;
+@property (strong, nonatomic) NSMutableArray *mProvinceArr;
+@property (strong, nonatomic) NSMutableDictionary *mCityDict;
+@property (strong, nonatomic) NSMutableDictionary *mAreaDict;
 
 @property (copy, nonatomic) NSString *mCurrentProvinceCode;
 @property (copy, nonatomic) NSString *mCurrentCityCode;
@@ -51,9 +51,13 @@
         NSData *locationData = [NSData dataWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"location" ofType:@"json"]];
         NSDictionary *locationDict = [NSJSONSerialization JSONObjectWithData:locationData options:NSJSONReadingAllowFragments error:nil];
         
-        regionPickerView.mProvinceDict = [locationDict objectForKey:@"province"];
-        regionPickerView.mCityDict = [locationDict objectForKey:@"city"];
-        regionPickerView.mAreaDict = [locationDict objectForKey:@"area"];
+        NSDictionary *provinceDict = [locationDict objectForKey:@"province"];
+        for (NSString *key in provinceDict) {
+            [regionPickerView.mProvinceArr addObject:@[key, [provinceDict objectForKey:key]]];
+        }
+        
+        regionPickerView.mCityDict = [[locationDict objectForKey:@"city"] mutableCopy];
+        regionPickerView.mAreaDict = [[locationDict objectForKey:@"area"] mutableCopy];
         
         [regionPickerView addSubview:regionPickerView.mCancelBtn];
         [regionPickerView addSubview:regionPickerView.mBottomGapView];
@@ -93,6 +97,20 @@
 
 -(void)pickerViewSetting {
     
+    if (self.showAll) {
+        [self.mProvinceArr insertObject:@[@"000000", @"全部"] atIndex:0];
+        for (NSString *key in self.mCityDict.allKeys) {
+            NSMutableArray *citys = [[self.mCityDict objectForKey:key] mutableCopy];
+            [citys insertObject:@[@"000000", @"全部"] atIndex:0];
+            [self.mCityDict setObject:citys forKey:key];
+        }
+        for (NSString *key in self.mAreaDict.allKeys) {
+            NSMutableArray *areas = [[self.mAreaDict objectForKey:key] mutableCopy];
+            [areas insertObject:@[@"000000", @"全部"] atIndex:0];
+            [self.mAreaDict setObject:areas forKey:key];
+        }
+    }
+    
     if (self.currentRegionCode == nil && self.currentRegionName == nil) {
         self.currentRegionName = @"山东省/济南市/历下区";
         self.currentRegionCode = @"370000/370100/370102";
@@ -103,10 +121,16 @@
         NSArray *regionCodes = [self.currentRegionCode componentsSeparatedByString:@"/"];
         if (regionCodes.count >= 1) { // 滚动到对应的省
             self.mCurrentProvinceCode = [regionCodes objectAtIndex:0];
-            self.mCurrentProvinceName = [self.mProvinceDict objectForKey:self.mCurrentProvinceCode];
+            for (int i=0; i<self.mProvinceArr.count; i++) {
+                NSArray *province = self.mProvinceArr[i];
+                if ([province[0] isEqualToString:self.mCurrentProvinceCode]) {
+                    self.mCurrentProvinceName = province[1];
+                    [self.mMainPickerView selectRow:i inComponent:0 animated:YES];
+                    [self.mMainPickerView reloadAllComponents];
+                    break;
+                }
+            }
             
-            NSInteger index = [self.mProvinceDict.allKeys indexOfObject:self.mCurrentProvinceCode];
-            [self.mMainPickerView selectRow:index inComponent:0 animated:YES];
             
             if (self.regionGrade == RegionGradeCity || self.regionGrade == RegionGradeArea) { // 如果显示到市级或县级
                 if (regionCodes.count >= 2) { // 滚动到对应的市/区
@@ -117,6 +141,7 @@
                         if ([citys[i][0] isEqualToString:self.mCurrentCityCode]) {
                             self.mCurrentCityName = citys[i][1];
                             [self.mMainPickerView selectRow:i inComponent:1 animated:YES];
+                            [self.mMainPickerView reloadAllComponents];
                             break;
                         }
                     }
@@ -130,6 +155,7 @@
                                 if ([areas[i][0] isEqualToString:self.mCurrentAreaCode]) {
                                     self.mCurrentAreaName = areas[i][1];
                                     [self.mMainPickerView selectRow:i inComponent:2 animated:YES];
+                                    [self.mMainPickerView reloadAllComponents];
                                     break;
                                 }
                             }
@@ -143,16 +169,15 @@
         NSArray *regionNames = [self.currentRegionName componentsSeparatedByString:@"/"];
         if (regionNames.count >= 1) { // 滚动到对应的省
             self.mCurrentProvinceName = [regionNames objectAtIndex:0];
-            for (int i=0; i<self.mProvinceDict.allKeys.count; i++) {
-                NSString *provinceName = [self.mProvinceDict objectForKey:self.mProvinceDict.allKeys[i]];
-                if ([self.mCurrentProvinceName isEqualToString:provinceName]) {
-                    self.mCurrentProvinceCode = self.mProvinceDict.allKeys[i];
+            for (int i=0; i < self.mProvinceArr.count; i++) {
+                NSArray *province = self.mProvinceArr[i];
+                if ([province[1] isEqualToString:self.mCurrentProvinceName]) {
+                    self.mCurrentProvinceCode = province[0];
+                    [self.mMainPickerView selectRow:i inComponent:0 animated:NO];
+                    [self.mMainPickerView reloadAllComponents];
                     break;
                 }
             }
-            
-            NSInteger index = [self.mProvinceDict.allKeys indexOfObject:self.mCurrentProvinceCode];
-            [self.mMainPickerView selectRow:index inComponent:0 animated:YES];
             
             if (self.regionGrade == RegionGradeCity || self.regionGrade == RegionGradeArea) { // 如果显示到市级或县级
                 if (regionNames.count >= 2) { // 滚动到对应的市/区
@@ -162,7 +187,8 @@
                     for (int i=0; i<citys.count; i++) {
                         if ([citys[i][1] isEqualToString:self.mCurrentCityName]) {
                             self.mCurrentCityCode = citys[i][0];
-                            [self.mMainPickerView selectRow:i inComponent:1 animated:YES];
+                            [self.mMainPickerView selectRow:i inComponent:1 animated:NO];
+                            [self.mMainPickerView reloadAllComponents];
                             break;
                         }
                     }
@@ -175,7 +201,8 @@
                             for (int i = 0; i < areas.count; i++) {
                                 if ([areas[i][1] isEqualToString:self.mCurrentAreaName]) {
                                     self.mCurrentAreaCode = areas[i][0];
-                                    [self.mMainPickerView selectRow:i inComponent:2 animated:YES];
+                                    [self.mMainPickerView selectRow:i inComponent:2 animated:NO];
+                                    [self.mMainPickerView reloadAllComponents];
                                     break;
                                 }
                             }
@@ -185,8 +212,6 @@
             }
         }
     }
-    
-    [self.mMainPickerView reloadAllComponents];
 }
 
 /******************************************************************/
@@ -204,7 +229,7 @@
 
 -(NSInteger)pickerView:(UIPickerView *)pickerView numberOfRowsInComponent:(NSInteger)component {
     if (component == 0) { // 省/直辖市/特别行政区/自治区等
-        return self.mProvinceDict.allKeys.count;
+        return self.mProvinceArr.count;
     } else if (component == 1) { // 市/区
         NSArray *citys = [self.mCityDict objectForKey:self.mCurrentProvinceCode];
         return citys.count;
@@ -232,8 +257,7 @@
     
     NSString *title = @"";
     if (component == 0) {
-        NSString *key = self.mProvinceDict.allKeys[row];
-        title = [self.mProvinceDict objectForKey:key];
+        title = self.mProvinceArr[row][1];
     } else if (component == 1) {
         NSArray *citys = [self.mCityDict objectForKey:self.mCurrentProvinceCode];
         NSArray *city = citys[row];
@@ -257,8 +281,8 @@
     
     if (component == 0) {
         
-        self.mCurrentProvinceCode = self.mProvinceDict.allKeys[row];
-        self.mCurrentProvinceName = [self.mProvinceDict objectForKey:self.mCurrentProvinceCode];
+        self.mCurrentProvinceCode = self.mProvinceArr[row][0];
+        self.mCurrentProvinceName = self.mProvinceArr[row][1];
         
         NSArray *citys = [self.mCityDict objectForKey:self.mCurrentProvinceCode];
         NSArray *city = citys[0];
@@ -350,6 +374,21 @@
     self.mCurrentCityName = nil;
     self.mCurrentAreaCode = nil;
     self.mCurrentAreaName = nil;
+    
+    if (self.showAll) {
+        [self.mProvinceArr removeObjectAtIndex:0];
+        
+        for (NSString *key in self.mCityDict.allKeys) {
+            NSMutableArray *citys = [[self.mCityDict objectForKey:key] mutableCopy];
+            [citys removeObjectAtIndex:0];
+            [self.mCityDict setObject:citys forKey:key];
+        }
+        for (NSString *key in self.mAreaDict.allKeys) {
+            NSMutableArray *areas = [[self.mAreaDict objectForKey:key] mutableCopy];
+            [areas removeObjectAtIndex:0];
+            [self.mAreaDict setObject:areas forKey:key];
+        }
+    }
 }
 
 
@@ -401,23 +440,23 @@
     return _mCancelBtn;
 }
 
--(NSDictionary *)mProvinceDict {
-    if (_mProvinceDict == nil) {
-        _mProvinceDict = [[NSDictionary alloc] init];
+-(NSMutableArray *)mProvinceArr {
+    if (_mProvinceArr == nil) {
+        _mProvinceArr = [[NSMutableArray alloc] init];
     }
-    return _mProvinceDict;
+    return _mProvinceArr;
 }
 
--(NSDictionary *)mCityDict {
+-(NSMutableDictionary *)mCityDict {
     if (_mCityDict == nil) {
-        _mCityDict = [[NSDictionary alloc] init];
+        _mCityDict = [[NSMutableDictionary alloc] init];
     }
     return _mCityDict;
 }
 
--(NSDictionary *)mAreaDict {
+-(NSMutableDictionary *)mAreaDict {
     if (_mAreaDict == nil) {
-        _mAreaDict = [[NSDictionary alloc] init];
+        _mAreaDict = [[NSMutableDictionary alloc] init];
     }
     return _mAreaDict;
 }

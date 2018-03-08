@@ -35,6 +35,7 @@ typedef void(^LFRegionResult)(NSString *regionName, NSString *regionCode);
 
 @property (copy, nonatomic) NSString *currentRegionName; // 比如: 山东省/济南市/历下区
 @property (copy, nonatomic) NSString *currentRegionCode; // 比如: 370000/370100/370102
+@property (assign, nonatomic) BOOL showAll; // 是否在省/市/县的开始显示 “全部”
 
 +(instancetype)shared;
 -(void)showInView:(UIView *)superView

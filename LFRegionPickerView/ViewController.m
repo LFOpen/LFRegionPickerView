@@ -33,7 +33,8 @@
 //    [LFRegionPickerView shared].regionGrade = RegionGradeArea;
 //    [LFRegionPickerView shared].buttonPosition = ButtonPositionTop;
 //    [LFRegionPickerView shared].currentRegionName = @"";
-//    [LFRegionPickerView shared].currentRegionName = @"山东省/济南市/历下区";
+    [LFRegionPickerView shared].currentRegionName = @"山东省/济南市/历下区";
+    [LFRegionPickerView shared].showAll = YES;
     [[LFRegionPickerView shared] showInView:self.view result:^(NSString *regionName, NSString *regionCode) {
         NSLog(@"%@", [NSString stringWithFormat:@"region name: %@", regionName]);
         NSLog(@"%@", [NSString stringWithFormat:@"region code: %@", regionCode]);

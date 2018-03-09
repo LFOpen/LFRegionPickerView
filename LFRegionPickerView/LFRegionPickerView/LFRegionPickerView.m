@@ -8,8 +8,6 @@
 
 #import "LFRegionPickerView.h"
 
-#define MAINSCREEN_W [UIScreen mainScreen].bounds.size.width
-#define MAINSCREEN_H [UIScreen mainScreen].bounds.size.height
 @interface LFRegionPickerView()<UIPickerViewDelegate, UIPickerViewDataSource>
 @property (strong, nonatomic) UIView *mTopGapView;
 @property (strong, nonatomic) UIView *mBottomGapView;
@@ -30,6 +28,7 @@
 @property (copy, nonatomic) NSString *mCurrentAreaName;
 
 @property (copy, nonatomic) LFRegionResult result;
+@property (strong, nonatomic) UIView *bgBlackView;
 @end
 
 @implementation LFRegionPickerView
@@ -74,31 +73,34 @@
 
 -(void)showInView:(UIView *)superView result:(LFRegionResult)result {
     
-    [self viewInit];
+    [self viewInitInSuperView:superView];
     self.result = result;
     [self pickerViewSetting];
+    
+    self.bgBlackView.frame = superView.bounds;
+    [superView addSubview:self.bgBlackView];
     [superView addSubview:self];
 }
 
--(void)viewInit {
+-(void)viewInitInSuperView:(UIView *)superView {
     
     [self.mCancelBtn.titleLabel setFont:self.cancelTitleFont];
     [self.mOkBtn.titleLabel setFont:self.okTitleFont];
     
-    self.frame = CGRectMake(0, MAINSCREEN_H - self.height, MAINSCREEN_W, self.height);
-    self.mTopGapView.frame = CGRectMake(0, 0, MAINSCREEN_W, 1.0);
+    self.frame = CGRectMake(0, superView.bounds.size.height - self.height, superView.bounds.size.width, self.height);
+    self.mTopGapView.frame = CGRectMake(0, 0, superView.bounds.size.width, 1.0);
     // 根据ButtonPosition的位置来重新布局
     if (self.buttonPosition == ButtonPositionTop) {
         self.mCancelBtn.frame = CGRectMake(0, 1.0, 100.0, self.buttonHeight);
         self.mOkBtn.frame = CGRectMake(self.bounds.size.width - 100.0, 1.0, 100.0, self.buttonHeight);
-        self.mBottomGapView.frame = CGRectMake(0,self.mOkBtn.bounds.size.height + 1.0,MAINSCREEN_W,1.0);
-        self.mMainPickerView.frame = CGRectMake(0,1.0 * 2 + self.mOkBtn.bounds.size.height, MAINSCREEN_W,self.bounds.size.height - self.mOkBtn.bounds.size.height-1.0*2);
+        self.mBottomGapView.frame = CGRectMake(0,self.mOkBtn.bounds.size.height + 1.0,superView.bounds.size.width,1.0);
+        self.mMainPickerView.frame = CGRectMake(0,1.0 * 2 + self.mOkBtn.bounds.size.height, superView.bounds.size.width,self.bounds.size.height - self.mOkBtn.bounds.size.height-1.0*2);
         
     } else {
         self.mOkBtn.frame = CGRectMake(self.bounds.size.width - 100.0, self.bounds.size.height - self.buttonHeight, 100.0, self.buttonHeight);
         self.mCancelBtn.frame = CGRectMake(0, self.bounds.size.height - self.buttonHeight, 100.0, self.buttonHeight);
-        self.mBottomGapView.frame = CGRectMake(0, self.bounds.size.height - self.mOkBtn.bounds.size.height, MAINSCREEN_W, 1.0);
-        self.mMainPickerView.frame = CGRectMake(0, 1.0, MAINSCREEN_W, self.bounds.size.height - self.mOkBtn.bounds.size.height-1.0*2);
+        self.mBottomGapView.frame = CGRectMake(0, self.bounds.size.height - self.mOkBtn.bounds.size.height, superView.bounds.size.width, 1.0);
+        self.mMainPickerView.frame = CGRectMake(0, 1.0, superView.bounds.size.width, self.bounds.size.height - self.mOkBtn.bounds.size.height-1.0*2);
     }
 }
 
@@ -351,6 +353,7 @@
 /******************************************************************/
 -(void)cancelAction {
     [self clearData];
+    [self.bgBlackView removeFromSuperview];
     [self removeFromSuperview];
 }
 
@@ -380,6 +383,7 @@
     }
     
     [self clearData];
+    [self.bgBlackView removeFromSuperview];
     [self removeFromSuperview];
 }
 
@@ -480,6 +484,15 @@
         _mAreaDict = [[NSMutableDictionary alloc] init];
     }
     return _mAreaDict;
+}
+
+-(UIView *)bgBlackView {
+    if (_bgBlackView == nil) {
+        _bgBlackView = [[UIView alloc] initWithFrame:CGRectZero];
+        _bgBlackView.backgroundColor = [UIColor blackColor];
+        _bgBlackView.alpha = 0.3;
+    }
+    return _bgBlackView;
 }
 @end
 

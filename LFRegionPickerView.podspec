@@ -9,7 +9,7 @@
 Pod::Spec.new do |s|
 
   s.name         = "LFRegionPickerView"
-  s.version      = "0.0.7"
+  s.version      = "0.0.8"
   s.summary      = "简易版地址选择器."
   s.description  = <<-DESC
 		一个简单的地址选择器，简化相关的操作

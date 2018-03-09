@@ -39,6 +39,7 @@
     static LFRegionPickerView *regionPickerView;
     dispatch_once(&onceToken, ^{
         regionPickerView = [[LFRegionPickerView alloc] initWithFrame:CGRectZero];
+        regionPickerView.backgroundColor = [UIColor whiteColor];
         regionPickerView.buttonPosition = ButtonPositionBottom;
         regionPickerView.pickerTitleColor = [UIColor blackColor];
         regionPickerView.gapLineColor = [UIColor lightGrayColor];

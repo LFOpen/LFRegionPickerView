@@ -103,13 +103,19 @@
 
 -(void)pickerViewSetting {
     
-    if (self.showAll) {
+    if (self.showAllBeforeProvince) {
         [self.mProvinceArr insertObject:@[@"000000", @"全部"] atIndex:0];
+    }
+    
+    if (self.showAllBeforeCity) {
         for (NSString *key in self.mCityDict.allKeys) {
             NSMutableArray *citys = [[self.mCityDict objectForKey:key] mutableCopy];
             [citys insertObject:@[@"000000", @"全部"] atIndex:0];
             [self.mCityDict setObject:citys forKey:key];
         }
+    }
+    
+    if (self.showAllBeforeArea) {
         for (NSString *key in self.mAreaDict.allKeys) {
             NSMutableArray *areas = [[self.mAreaDict objectForKey:key] mutableCopy];
             [areas insertObject:@[@"000000", @"全部"] atIndex:0];
@@ -365,11 +371,11 @@
     }
     
     if (self.regionGrade == RegionGradeProvince) {
-        self.result(self.mCurrentProvinceName, self.mCurrentProvinceCode);
+        self.result(@[self.mCurrentProvinceName], @[self.mCurrentProvinceCode]);
     } else if (self.regionGrade == RegionGradeCity) {
-        self.result([NSString stringWithFormat:@"%@/%@", self.mCurrentProvinceName, self.mCurrentCityName], [NSString stringWithFormat:@"%@/%@", self.mCurrentProvinceCode, self.mCurrentCityCode]);
+        self.result(@[self.mCurrentProvinceName, self.mCurrentCityName], @[self.mCurrentProvinceCode, self.mCurrentCityCode]);
     } else {
-        self.result([NSString stringWithFormat:@"%@/%@/%@", self.mCurrentProvinceName, self.mCurrentCityName, self.mCurrentAreaName], [NSString stringWithFormat:@"%@/%@/%@", self.mCurrentProvinceCode, self.mCurrentCityCode, self.mCurrentAreaCode]);
+        self.result(@[self.mCurrentProvinceName, self.mCurrentCityName, self.mCurrentAreaName], @[self.mCurrentProvinceCode, self.mCurrentCityCode, self.mCurrentAreaCode]);
     }
     
     [self clearData];
@@ -384,14 +390,19 @@
     self.mCurrentAreaCode = nil;
     self.mCurrentAreaName = nil;
     
-    if (self.showAll) {
+    if (self.showAllBeforeProvince) {
         [self.mProvinceArr removeObjectAtIndex:0];
-        
+    }
+    
+    if (self.showAllBeforeCity) {
         for (NSString *key in self.mCityDict.allKeys) {
             NSMutableArray *citys = [[self.mCityDict objectForKey:key] mutableCopy];
             [citys removeObjectAtIndex:0];
             [self.mCityDict setObject:citys forKey:key];
         }
+    }
+    
+    if (self.showAllBeforeArea) {
         for (NSString *key in self.mAreaDict.allKeys) {
             NSMutableArray *areas = [[self.mAreaDict objectForKey:key] mutableCopy];
             [areas removeObjectAtIndex:0];

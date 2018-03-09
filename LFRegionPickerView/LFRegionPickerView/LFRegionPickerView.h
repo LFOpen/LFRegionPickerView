@@ -19,7 +19,7 @@ typedef NS_ENUM(NSUInteger, RegionGrade) {
     RegionGradeArea // 显示到县/区级
 };
 
-typedef void(^LFRegionResult)(NSString *regionName, NSString *regionCode);
+typedef void(^LFRegionResult)(NSArray *regionNames, NSArray *regionCodes);
 
 @interface LFRegionPickerView : UIView
 @property (assign, nonatomic) CGFloat buttonHeight; // 取消/确定按钮高度
@@ -38,7 +38,9 @@ typedef void(^LFRegionResult)(NSString *regionName, NSString *regionCode);
 
 @property (copy, nonatomic) NSString *currentRegionName; // 比如: 山东省/济南市/历下区
 @property (copy, nonatomic) NSString *currentRegionCode; // 比如: 370000/370100/370102
-@property (assign, nonatomic) BOOL showAll; // 是否在省/市/县的开始显示 “全部”
+@property (assign, nonatomic) BOOL showAllBeforeProvince; // 是否在省的开始显示 “全部”
+@property (assign, nonatomic) BOOL showAllBeforeCity; // 是否在市的开始显示 “全部”
+@property (assign, nonatomic) BOOL showAllBeforeArea; // 是否在县/区的开始显示 “全部”
 
 
 +(instancetype)shared;

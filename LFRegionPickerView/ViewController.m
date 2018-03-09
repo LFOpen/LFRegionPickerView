@@ -34,10 +34,13 @@
 //    [LFRegionPickerView shared].buttonPosition = ButtonPositionTop;
 //    [LFRegionPickerView shared].currentRegionName = @"";
     [LFRegionPickerView shared].currentRegionName = @"山东省/济南市/历下区";
-    [LFRegionPickerView shared].showAll = YES;
-    [[LFRegionPickerView shared] showInView:self.view result:^(NSString *regionName, NSString *regionCode) {
-        NSLog(@"%@", [NSString stringWithFormat:@"region name: %@", regionName]);
-        NSLog(@"%@", [NSString stringWithFormat:@"region code: %@", regionCode]);
+    [LFRegionPickerView shared].showAllBeforeArea = YES;
+    [LFRegionPickerView shared].showAllBeforeCity = YES;
+    [LFRegionPickerView shared].showAllBeforeProvince = YES;
+    [[LFRegionPickerView shared] showInView:self.view result:^(NSArray *regionNames, NSArray *regionCodes) {
+        
+        NSLog(@"%@", [regionNames componentsJoinedByString:@"/"]);
+        NSLog(@"%@", [regionCodes componentsJoinedByString:@"/"]);
     }];
 }
 

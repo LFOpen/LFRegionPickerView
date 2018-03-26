@@ -397,6 +397,7 @@
     
     if (self.showAllBeforeProvince) {
         [self.mProvinceArr removeObjectAtIndex:0];
+        self.showAllBeforeProvince = false;
     }
     
     if (self.showAllBeforeCity) {
@@ -405,6 +406,7 @@
             [citys removeObjectAtIndex:0];
             [self.mCityDict setObject:citys forKey:key];
         }
+        self.showAllBeforeCity = false;
     }
     
     if (self.showAllBeforeArea) {
@@ -413,6 +415,7 @@
             [areas removeObjectAtIndex:0];
             [self.mAreaDict setObject:areas forKey:key];
         }
+        self.showAllBeforeArea = false;
     }
 }
 
